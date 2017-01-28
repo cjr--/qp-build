@@ -22,7 +22,8 @@ define(module, function(exports, require, make) {
     state: {},
     pages: [],
     working_directory: '',
-    page_directory: 'page',
+    site_dirname: 'site',
+    page_dirname: 'page',
     template_directory: '',
     source_directory: '',
     target_directory: '',
@@ -44,11 +45,11 @@ define(module, function(exports, require, make) {
     },
 
     build_site_assets: function() {
-      var site_assets = this.get_assets(path.join('site', '.asset'));
-      var site_links = qp.union(
+      var site_assets = this.get_assets(path.join(this.site_dirname, '.asset'));
+      var site_links = qp.map(qp.union(
         this.merge_files(site_assets.files.merge, 'site'),
         this.copy_files(site_assets.files.copy)
-      );
+      ), file => '/' + qp.ltrim(file, '/site/'));
       this.site_links = this.group_by_extension(site_links);
     },
 
@@ -57,24 +58,31 @@ define(module, function(exports, require, make) {
     },
 
     build_page: function(page) {
-      var page_assets = this.get_assets(path.join(this.page_directory, page, '.asset'));
-      var page_view = this.get_view(path.join(this.page_directory, page, page + '.html'));
+      var page_assets = this.get_assets(path.join(this.page_dirname, page, '.asset'));
+      var page_view = this.get_view(path.join(this.page_dirname, page, page + '.html'));
       page_assets.add_files('merge', page_view.file_list);
+
+      var library_links = this.group_by_extension(this.copy_files(page_assets.files.library));
+
       var page_links = this.group_by_extension(
         qp.union(
-          this.merge_files(page_assets.files.merge, 'page'),
-          this.copy_files(page_assets.files.copy)
+          this.copy_files(page_assets.files.copy),
+          this.merge_files(page_assets.files.merge, path.join(page, page))
         )
       );
-      var page = this.apply_template(page_view.token.template, {
+
+      var page_html = this.apply_template(page_view.token.template, {
         title: page_view.token.title,
         color: page_view.token.color,
         display: 'standalone',
         appcache: '',
-        css_files: qp.union(this.site_links.css, page_links.css),
-        content: page_view.html,
-        js_files: qp.union(this.site_links.js, page_links.js)
+        css_files: qp.union(library_links.css, this.site_links.css, page_links.css),
+        js_files: qp.union(library_links.js, this.site_links.js, page_links.js),
+        content: page_view.html
       });
+      fss.write(path.join(this.target_directory, page, 'index.html'), page_html);
+
+      log(page_html)
     },
 
     get_assets: function(file) {
@@ -87,7 +95,7 @@ define(module, function(exports, require, make) {
 
     get_view: function(file) {
       return view.create({
-        root: this.working_directory,
+        root: this.source_directory,
         file: path.join(this.source_directory, file)
       });
     },
@@ -97,7 +105,7 @@ define(module, function(exports, require, make) {
       qp.each_own(this.group_by_extension(file_list), (files, ext) => {
         var merge_file = path.join(this.target_directory, filename + '.' + ext);
         fss.merge_files(files, { out: merge_file });
-        merged_files.push(merge_file);
+        merged_files.push(fso.filename(merge_file));
       });
       return merged_files;
     },
@@ -119,7 +127,7 @@ define(module, function(exports, require, make) {
     },
 
     apply_template: function(template, data) {
-      return mustache.render(path.join(this.template_directory, template), data);
+      return mustache.render(fss.read(this.template_directory, template), data);
     }
 
   });
