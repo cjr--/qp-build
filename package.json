@@ -1,0 +1,25 @@
+{
+  "name": "qp-build",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "glob": "^7.1.1",
+    "mustache": "^2.3.0",
+    "uglify-js": "^2.7.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjr--/qp-build.git"
+  },
+  "author": "CJR",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cjr--/qp-build/issues"
+  },
+  "homepage": "https://github.com/cjr--/qp-build#readme"
+}
