@@ -46,10 +46,10 @@ define(module, function(exports, require, make) {
 
     build_site_assets: function() {
       var site_assets = this.get_assets(path.join(this.site_dirname, '.asset'));
-      var site_links = qp.map(qp.union(
-        this.merge_files(site_assets.files.merge, 'site'),
-        this.copy_files(site_assets.files.copy)
-      ), file => '/' + qp.ltrim(file, '/site/'));
+      var site_links = qp.union(
+        this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site/')),
+        this.merge_files(site_assets.files.merge, 'site')
+      );
       this.site_links = this.group_by_extension(site_links);
     },
 
@@ -58,36 +58,45 @@ define(module, function(exports, require, make) {
     },
 
     build_page: function(page) {
+      var page_dir = page === 'index' ? '' : page;
       var page_assets = this.get_assets(path.join(this.page_dirname, page, '.asset'));
       var page_view = this.get_view(path.join(this.page_dirname, page, page + '.html'));
       page_assets.add_files('merge', page_view.file_list);
-
       var library_links = this.group_by_extension(this.copy_files(page_assets.files.library));
-
       var page_links = this.group_by_extension(
         qp.union(
           this.copy_files(page_assets.files.copy),
-          this.merge_files(page_assets.files.merge, path.join(page, page))
+          this.merge_files(page_assets.files.merge, path.join(page, 'index'))
         )
       );
-
-      var page_html = this.apply_template(page_view.token.template, {
-        title: page_view.token.title,
-        color: page_view.token.color,
-        display: 'standalone',
+      var page_state = {
+        page_title: page_assets.state.app_fullname,
+        app_fullname: page_assets.state.app_fullname,
+        app_name: page_assets.state.app_name,
+        brand_color: page_assets.state.brand_color,
+        app_display: page_assets.state.app_display
+      };
+      var page_html = this.apply_template(page_assets.state.page_template, qp.assign(page_state, {
         appcache: '',
         css_files: qp.union(library_links.css, this.site_links.css, page_links.css),
         js_files: qp.union(library_links.js, this.site_links.js, page_links.js),
         content: page_view.html
-      });
-      fss.write(path.join(this.target_directory, page, 'index.html'), page_html);
-
-      log(page_html)
+      }));
+      fss.write(path.join(this.target_directory, page_dir, 'index.html'), page_html);
+      fss.write(
+        path.join(this.target_directory, 'fav', 'browserconfig.xml'),
+        this.apply_template('browserconfig.xml', page_state)
+      );
+      fss.write(
+        path.join(this.target_directory, 'fav', 'manifest.json'),
+        this.apply_template('manifest.json', page_state)
+      );
+      log(page_html);
     },
 
     get_assets: function(file) {
       return asset.create({
-        state: this.state,
+        state: qp.clone(this.state),
         root: this.working_directory,
         file: path.join(this.source_directory, file)
       });
@@ -103,19 +112,31 @@ define(module, function(exports, require, make) {
     merge_files: function(file_list, filename) {
       var merged_files = [];
       qp.each_own(this.group_by_extension(file_list), (files, ext) => {
-        var merge_file = path.join(this.target_directory, filename + '.' + ext);
-        fss.merge_files(files, { out: merge_file });
-        merged_files.push(fso.filename(merge_file));
+        var merge_file = this.make_root_link(filename + '.' + ext);
+        var merge_filename = path.join(this.target_directory, merge_file);
+        fss.merge_files(files, { out_file: merge_filename });
+        merged_files.push(this.make_root_link(merge_file));
       });
       return merged_files;
     },
 
-    copy_files: function(source_files) {
-      return qp.map(source_files, file => {
-        var target_file = qp.after(file, this.source_directory);
-        fss.copy(file, path.join(this.target_directory, target_file));
+    copy_files: function(source_files, target) {
+      return qp.map(source_files, source_file => {
+        var target_file = this.make_root_link(qp.after(source_file, this.source_directory));
+        if (target) target_file = target.call(this, target_file);
+        this.copy_file(source_file, path.join(this.target_directory, target_file));
         return target_file;
       });
+    },
+
+    copy_file: function(source, target) {
+      if (!fss.exists(target)) {
+        fss.copy(source, target);
+      }
+    },
+
+    make_root_link: function(link) {
+      return '/' + qp.ltrim(qp.ltrim(link, '/'), 'index/');
     },
 
     group_by_extension: function(files) {
