@@ -91,7 +91,6 @@ define(module, function(exports, require, make) {
         path.join(this.target_directory, 'fav', 'manifest.json'),
         this.apply_template('manifest.json', page_state)
       );
-      log(page_html);
     },
 
     get_assets: function(file) {
