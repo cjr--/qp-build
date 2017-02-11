@@ -70,7 +70,7 @@ define(module, function(exports, require, make) {
         )
       );
       var page_state = {
-        page_title: page_assets.state.app_fullname,
+        page_title: page_view.token.title || page_assets.state.app_fullname,
         app_fullname: page_assets.state.app_fullname,
         app_name: page_assets.state.app_name,
         brand_color: page_assets.state.brand_color,
