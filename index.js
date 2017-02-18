@@ -8,9 +8,9 @@ define(module, function(exports, require, make) {
   var fss = require('qp-library/fss');
   var fso = require('qp-library/fso');
   var log = require('qp-library/log');
-  var ver = require('qp-library/version');
   var asset = require('qp-asset');
   var view = require('qp-view');
+  var version = require('qp-library/version');
 
   make({
 
@@ -18,7 +18,7 @@ define(module, function(exports, require, make) {
 
     debug: false,
     bump: 'patch',
-    version: {},
+    version: '',
     state: {},
     pages: [],
     working_directory: '',
@@ -38,6 +38,7 @@ define(module, function(exports, require, make) {
       this.build_target_directory();
       this.build_site_assets();
       this.build_pages();
+      this.version = version(this.bump);
     },
 
     build_target_directory: function() {
@@ -45,7 +46,7 @@ define(module, function(exports, require, make) {
     },
 
     build_site_assets: function() {
-      var site_assets = this.get_assets(path.join(this.site_dirname, '.asset'));
+      var site_assets = this.build_assets(path.join(this.site_dirname, '.asset'));
       var site_links = qp.union(
         this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site/')),
         this.merge_files(site_assets.files.merge, 'site')
@@ -59,8 +60,8 @@ define(module, function(exports, require, make) {
 
     build_page: function(page) {
       var page_dir = page === 'index' ? '' : page;
-      var page_assets = this.get_assets(path.join(this.page_dirname, page, '.asset'));
-      var page_view = this.get_view(path.join(this.page_dirname, page, page + '.html'));
+      var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
+      var page_view = this.build_view(path.join(this.page_dirname, page, page + '.html'));
       page_assets.add_files('merge', page_view.file_list);
       var library_links = this.group_by_extension(this.copy_files(page_assets.files.library));
       var page_links = this.group_by_extension(
@@ -93,7 +94,7 @@ define(module, function(exports, require, make) {
       );
     },
 
-    get_assets: function(file) {
+    build_assets: function(file) {
       return asset.create({
         state: qp.clone(this.state),
         root: this.working_directory,
@@ -101,7 +102,7 @@ define(module, function(exports, require, make) {
       });
     },
 
-    get_view: function(file) {
+    build_view: function(file) {
       return view.create({
         root: this.source_directory,
         file: path.join(this.source_directory, file)
