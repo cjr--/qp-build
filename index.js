@@ -17,7 +17,7 @@ define(module, function(exports, require, make) {
     ns: 'qp-build/build',
 
     debug: false,
-    bump: 'patch',
+    bump: 'bump',
     version: '',
     state: {},
     pages: [],
@@ -59,7 +59,7 @@ define(module, function(exports, require, make) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
         var page_view = this.build_view(path.join(this.page_dirname, page, page + '.html'));
-        page_assets.add_files('merge', page_view.file_list);
+        page_assets.add_files({ type: 'merge', files: page_view.file_list, prepend: true });
         var library_links = this.group_by_extension(this.copy_files(page_assets.files.library));
         var page_links = this.group_by_extension(
           qp.union(
