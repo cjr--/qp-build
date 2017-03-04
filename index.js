@@ -61,14 +61,16 @@ define(module, function(exports, require, make) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
         var page_view = this.build_view(path.join(this.page_dirname, page, page + '.html'));
-        page_assets.add_files({ type: 'merge', files: page_view.file_list, prepend: true });
-        var library_links = this.group_by_extension(this.copy_files(page_assets.files.library));
-        var page_links = this.group_by_extension(
-          qp.union(
-            this.copy_files(page_assets.files.copy),
-            this.merge_files(page_assets.files.merge, path.join(page, 'index'))
-          )
+        page_assets.add_files({ type: 'merge', files: page_view.file_list });
+
+        var copy_links = this.group_by_extension(
+          this.copy_files(this.order_by_location(page_assets.files.copy))
         );
+
+        var merge_links = this.group_by_extension(
+          this.merge_files(this.order_by_location(page_assets.files.merge), path.join(page, 'index'))
+        );
+
         var page_state = {
           page_title: page_view.token.title || page_assets.state.app_fullname,
           app_fullname: page_assets.state.app_fullname,
@@ -76,12 +78,14 @@ define(module, function(exports, require, make) {
           brand_color: page_assets.state.brand_color,
           app_display: page_assets.state.app_display
         };
+
         var page_html = this.apply_template(page_assets.state.page_template, qp.assign(page_state, {
           appcache: '',
-          css_files: qp.union(library_links.css, this.site_links.css, page_links.css),
-          js_files: qp.union(library_links.js, this.site_links.js, page_links.js),
+          css_files: qp.union(copy_links.css, this.site_links.css, merge_links.css),
+          js_files: qp.union(copy_links.js, this.site_links.js, merge_links.js),
           content: page_view.html
         }));
+
         fss.write(path.join(this.target_directory, page_dir, 'index.html'), page_html);
         fss.write(
           path.join(this.target_directory, 'fav', 'browserconfig.xml'),
@@ -137,6 +141,33 @@ define(module, function(exports, require, make) {
 
     make_root_link: function(link) {
       return '/' + qp.ltrim(qp.ltrim(link, '/'), 'index/');
+    },
+
+    get_locations: function() {
+      var src = this.source_directory;
+      var cwd = this.working_directory;
+      return [
+        { key: 'library', path: path.join(src, 'library'), files: [] },
+        { key: 'shared_modules', path: path.join(cwd, 'modules'), files: [] },
+        { key: 'site', path: path.join(src, 'site'), files: [] },
+        { key: 'local_modules', path: path.join(src, 'modules'), files: [] },
+        { key: 'component', path: path.join(src, 'component'), files: [] },
+        { key: 'view', path: path.join(src, 'view'), files: [] },
+        { key: 'page', path: path.join(src, 'page'), files: [] }
+      ];
+    },
+
+    order_by_location: function(files) {
+      var locations = this.get_locations();
+      qp.each(files, (file) => {
+        qp.each(locations, (location) => {
+          if (qp.starts(file, location.path)) {
+            location.files.push(file);
+            return false;
+          }
+        });
+      });
+      return qp.reduce(locations, (files, location) => qp.union(files, location.files), []);
     },
 
     group_by_extension: function(files) {
