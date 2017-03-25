@@ -18,6 +18,7 @@ define(module, function(exports, require, make) {
 
     ns: 'qp-build/build',
 
+    development: false,
     debug: false,
     bump: 'bump',
     version: '',
@@ -37,6 +38,12 @@ define(module, function(exports, require, make) {
       this.build_site_assets();
       this.build_pages();
       this.version = version(this.bump);
+
+      fss.write_json(this.target_directory, 'info.json', {
+        mode: this.development ? 'DEVELOPMENT' : 'PRODUCTION',
+        debug: this.debug,
+        version: this.version.to
+      });
     },
 
     build_target_directory: function() {
@@ -45,6 +52,7 @@ define(module, function(exports, require, make) {
 
     build_site_assets: function() {
       var site_assets = this.build_assets(path.join(this.site_dirname, '.asset'));
+      if (this.development) site_assets.files.merge.unshift(path.join(this.source_directory, 'developer.js'));
       var site_links = qp.union(
         this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site/')),
         this.merge_files(site_assets.files.merge, 'site')
