@@ -4,12 +4,11 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "dotenv": "^4.0.0",
-    "glob": "^7.1.1",
-    "mustache": "^2.3.0",
-    "uglify-js": "^2.7.5"
+    "dotenv": "^4.x",
+    "glob": "^7.x",
+    "mustache": "^2.x",
+    "uglify-js": "^2.x"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
