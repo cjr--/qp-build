@@ -11,7 +11,6 @@ define(module, function(exports, require, make) {
   var fso = require('qp-library/fso');
   var log = require('qp-library/log');
   var asset = require('qp-asset');
-  var view = require('qp-view');
   var version = require('qp-library/version');
 
   make({
@@ -68,8 +67,6 @@ define(module, function(exports, require, make) {
       var page_dir = page === 'index' ? '' : page;
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
-        var page_view = this.build_view(path.join(this.page_dirname, page, page + '.html'));
-        page_assets.add_files({ type: 'merge', files: page_view.file_list });
 
         var copy_links = this.group_by_extension(
           this.copy_files(this.order_by_location(page_assets.files.copy))
@@ -80,7 +77,7 @@ define(module, function(exports, require, make) {
         );
 
         var page_state = {
-          page_title: page_view.token.title || page_assets.state.app_fullname,
+          page_title: page_assets.state.app_title,
           app_fullname: page_assets.state.app_fullname,
           app_name: page_assets.state.app_name,
           brand_color: page_assets.state.brand_color,
@@ -90,8 +87,7 @@ define(module, function(exports, require, make) {
         var page_html = this.apply_template(page_assets.state.page_template, qp.assign(page_state, {
           appcache: '',
           css_files: qp.union(copy_links.css, this.site_links.css, merge_links.css),
-          js_files: qp.union(copy_links.js, this.site_links.js, merge_links.js),
-          content: page_view.html
+          js_files: qp.union(copy_links.js, this.site_links.js, merge_links.js)
         }));
 
         fss.write(path.join(this.target_directory, page_dir, 'index.html'), page_html);
@@ -110,13 +106,6 @@ define(module, function(exports, require, make) {
       return asset.create({
         state: qp.clone(this.state),
         root: this.working_directory,
-        file: path.join(this.source_directory, file)
-      });
-    },
-
-    build_view: function(file) {
-      return view.create({
-        root: this.source_directory,
         file: path.join(this.source_directory, file)
       });
     },
