@@ -12,7 +12,7 @@ define(module, function(exports, require, make) {
   var log = require('qp-library/log');
   var asset = require('qp-asset');
   var version = require('qp-library/version');
-  var vue = require('./vue-build');
+  var vue = require('qp-vue');
 
   make({
 

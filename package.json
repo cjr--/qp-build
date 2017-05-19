@@ -7,9 +7,8 @@
     "dotenv": "^4.x",
     "glob": "^7.x",
     "mustache": "^2.x",
-    "uglify-js": "^3.x",
-    "vue-template-compiler": "^2.x",
-    "vue-template-es2015-compiler": "^1.x"
+    "qp-vue": "^1.0.1",
+    "uglify-js": "^3.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

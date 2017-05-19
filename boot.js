@@ -8,5 +8,5 @@ if (process.env.REPO_PATH) {
   define.path('qp-utility', 'repo/qp-utility');
   define.path('qp-library', 'repo/qp-library');
   define.path('qp-asset', 'repo/qp-asset');
-  define.path('qp-view', 'repo/qp-view');
+  define.path('qp-vue', 'repo/qp-vue');
 }
