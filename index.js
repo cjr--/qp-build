@@ -12,6 +12,7 @@ define(module, function(exports, require, make) {
   var log = require('qp-library/log');
   var asset = require('qp-asset');
   var version = require('qp-library/version');
+  var vue = require('./vue-build');
 
   make({
 
@@ -68,12 +69,21 @@ define(module, function(exports, require, make) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
 
+        var view_assets = { files: { copy: [], merge: [] } };
+        qp.each(qp.find_all(page_assets.assets, { view: true }), (view) => {
+          var assets = vue.component(view.target);
+          qp.push(view_assets.files.copy, assets.files.copy);
+          qp.push(view_assets.files.merge, assets.files.merge);
+        });
+
         var copy_links = this.group_by_extension(
-          this.copy_files(this.order_by_location(page_assets.files.copy))
+          this.copy_files(this.order_by_location(qp.union(page_assets.files.copy, view_assets.files.copy)))
         );
 
         var merge_links = this.group_by_extension(
-          this.merge_files(this.order_by_location(page_assets.files.merge), path.join(page, 'index'))
+          this.merge_files(this.order_by_location(
+            qp.union(page_assets.files.merge, view_assets.files.merge)
+          ), path.join(page, 'index'))
         );
 
         var page_state = {
