@@ -1,11 +1,10 @@
 require('./boot');
 
-define(module, function(exports, require, make) {
+define(module, function(exports, require) {
 
   var path = require('path');
   var glob = require('glob');
   var mustache = require('mustache');
-  var uglify = require('uglify-js');
   var qp = require('qp-utility');
   var fss = require('qp-library/fss');
   var fso = require('qp-library/fso');
@@ -14,7 +13,7 @@ define(module, function(exports, require, make) {
   var version = require('qp-library/version');
   var vue = require('qp-vue');
 
-  make({
+  qp.make(exports, {
 
     ns: 'qp-build/build',
 
@@ -71,9 +70,9 @@ define(module, function(exports, require, make) {
 
         var view_assets = { files: { copy: [], merge: [] } };
         qp.each(qp.find_all(page_assets.assets, { view: true }), (view) => {
-          var assets = vue.component(view.target);
-          qp.push(view_assets.files.copy, assets.files.copy);
-          qp.push(view_assets.files.merge, assets.files.merge);
+          var vue.assets = vue.component(view.target);
+          qp.push(view_assets.files.copy, vue.assets.files.copy);
+          qp.push(view_assets.files.merge, vue.assets.files.merge);
         });
 
         var copy_links = this.group_by_extension(
@@ -154,13 +153,15 @@ define(module, function(exports, require, make) {
       var src = this.source_directory;
       var cwd = this.working_directory;
       return [
-        { key: 'library', path: path.join(src, 'library'), files: [] },
-        { key: 'shared_modules', path: path.join(cwd, 'modules'), files: [] },
-        { key: 'site', path: path.join(src, 'site'), files: [] },
-        { key: 'local_modules', path: path.join(src, 'modules'), files: [] },
-        { key: 'component', path: path.join(src, 'component'), files: [] },
-        { key: 'view', path: path.join(src, 'view'), files: [] },
-        { key: 'page', path: path.join(src, 'page'), files: [] }
+        { key: 'library', path: path.join(src, 'library', path.sep), files: [] },
+        { key: 'shared_modules', path: path.join(cwd, 'modules', path.sep), files: [] },
+        { key: 'app', path: path.join(src, 'app', path.sep), files: [] },
+        { key: 'site', path: path.join(src, 'site', path.sep), files: [] },
+        { key: 'local_modules', path: path.join(src, 'modules', path.sep), files: [] },
+        { key: 'component', path: path.join(src, 'component', path.sep), files: [] },
+        { key: 'components', path: path.join(src, 'components', path.sep), files: [] },
+        { key: 'view', path: path.join(src, 'view', path.sep), files: [] },
+        { key: 'page', path: path.join(src, 'page', path.sep), files: [] }
       ];
     },
 
