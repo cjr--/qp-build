@@ -70,9 +70,9 @@ define(module, function(exports, require) {
 
         var view_assets = { files: { copy: [], merge: [] } };
         qp.each(qp.find_all(page_assets.assets, { view: true }), (view) => {
-          var vue.assets = vue.component(view.target);
-          qp.push(view_assets.files.copy, vue.assets.files.copy);
-          qp.push(view_assets.files.merge, vue.assets.files.merge);
+          var vue_assets = vue.component(view.target);
+          qp.push(view_assets.files.copy, vue_assets.files.copy);
+          qp.push(view_assets.files.merge, vue_assets.files.merge);
         });
 
         var copy_links = this.group_by_extension(
