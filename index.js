@@ -68,9 +68,10 @@ define(module, function(exports, require) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
 
-        var view_assets = { files: { copy: [], merge: [] } };
+        var vue_assets = vue.component(page_assets.asset_dir);
+        var view_assets = { files: { copy: vue_assets.files.copy, merge: vue_assets.files.merge } };
         qp.each(qp.find_all(page_assets.assets, { view: true }), (view) => {
-          var vue_assets = vue.component(view.target);
+          vue_assets = vue.component(view.target);
           qp.push(view_assets.files.copy, vue_assets.files.copy);
           qp.push(view_assets.files.merge, vue_assets.files.merge);
         });
