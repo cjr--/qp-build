@@ -68,22 +68,19 @@ define(module, function(exports, require) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
       if (page_assets.asset_file.exists) {
 
-        var vue_assets = vue.component(page_assets.asset_dir);
-        var view_assets = { files: { copy: vue_assets.files.copy, merge: vue_assets.files.merge } };
+        var view_assets = { files: { copy: [], merge: [] } };
         qp.each(qp.find_all(page_assets.assets, { view: true }), (view) => {
-          vue_assets = vue.component(view.target);
+          var vue_assets = vue.component(view.target, view.target === page_assets.asset_dir);
           qp.push(view_assets.files.copy, vue_assets.files.copy);
           qp.push(view_assets.files.merge, vue_assets.files.merge);
         });
 
         var copy_links = this.group_by_extension(
-          this.copy_files(this.order_by_location(qp.union(page_assets.files.copy, view_assets.files.copy)))
+          this.copy_files(this.order_by_location(qp.union(view_assets.files.copy, page_assets.files.copy)))
         );
 
         var merge_links = this.group_by_extension(
-          this.merge_files(this.order_by_location(
-            qp.union(page_assets.files.merge, view_assets.files.merge)
-          ), path.join(page, 'index'))
+          this.merge_files(this.order_by_location(qp.union(view_assets.files.merge, page_assets.files.merge)), path.join(page, 'index'))
         );
 
         var page_state = {
@@ -156,12 +153,10 @@ define(module, function(exports, require) {
       return [
         { key: 'library', path: path.join(src, 'library', path.sep), files: [] },
         { key: 'shared_modules', path: path.join(cwd, 'modules', path.sep), files: [] },
-        { key: 'app', path: path.join(src, 'app', path.sep), files: [] },
         { key: 'site', path: path.join(src, 'site', path.sep), files: [] },
         { key: 'local_modules', path: path.join(src, 'modules', path.sep), files: [] },
+        { key: 'state', path: path.join(src, 'state', path.sep), files: [] },
         { key: 'component', path: path.join(src, 'component', path.sep), files: [] },
-        { key: 'components', path: path.join(src, 'components', path.sep), files: [] },
-        { key: 'view', path: path.join(src, 'view', path.sep), files: [] },
         { key: 'page', path: path.join(src, 'page', path.sep), files: [] }
       ];
     },
