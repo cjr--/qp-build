@@ -155,7 +155,7 @@ define(module, function(exports, require) {
         { key: 'shared_modules', path: path.join(cwd, 'modules', path.sep), files: [] },
         { key: 'site', path: path.join(src, 'site', path.sep), files: [] },
         { key: 'local_modules', path: path.join(src, 'modules', path.sep), files: [] },
-        { key: 'state', path: path.join(src, 'state', path.sep), files: [] },
+        { key: 'store', path: path.join(src, 'store', path.sep), files: [] },
         { key: 'component', path: path.join(src, 'component', path.sep), files: [] },
         { key: 'page', path: path.join(src, 'page', path.sep), files: [] }
       ];
