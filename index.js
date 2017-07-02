@@ -158,6 +158,7 @@ define(module, function(exports, require) {
         { key: 'mixin', path: path.join(src, 'mixin', path.sep), files: [] },
         { key: 'api', path: path.join(src, 'api', path.sep), files: [] },
         { key: 'store', path: path.join(src, 'store', path.sep), files: [] },
+        { key: 'directive', path: path.join(src, 'directive', path.sep), files: [] },
         { key: 'component', path: path.join(src, 'component', path.sep), files: [] },
         { key: 'page', path: path.join(src, 'page', path.sep), files: [] }
       ];
