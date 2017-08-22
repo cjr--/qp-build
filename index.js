@@ -60,12 +60,53 @@ define(module, function(exports, require) {
     },
 
     build_pages: function() {
-      qp.each(this.pages, this.build_page);
+      qp.each(this.pages, (page) => {
+        page.template = page.template || page.type + '.template.html';
+        this['build_' + page.type + '_page'](page);
+      });
+
+      fss.write(
+        path.join(this.target_directory, 'fav', 'browserconfig.xml'),
+        this.apply_template('browserconfig.xml', this.state)
+      );
+      fss.write(
+        path.join(this.target_directory, 'fav', 'manifest.json'),
+        this.apply_template('manifest.json', this.state)
+      );
     },
 
-    build_page: function(page) {
-      var page_dir = page === 'index' ? '' : page;
-      var page_assets = this.build_assets(path.join(this.page_dirname, page, '.asset'));
+    build_html_page: function(page) {
+      var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
+      if (page_assets.asset_file.exists) {
+
+        var copy_links = this.group_by_extension(
+          this.copy_files(this.order_by_location(page_assets.files.copy))
+        );
+
+        var merge_links = this.group_by_extension(
+          this.merge_files(this.order_by_location(page_assets.files.merge), path.join(page.target, 'index'))
+        );
+
+        var page_state = {
+          page_title: page_assets.state.app_title,
+          brand_color: page_assets.state.brand_color,
+          app_display: page_assets.state.app_display
+        };
+
+        var page_html = this.apply_template(page.template, qp.assign(page_state, {
+          appcache: '',
+          css_files: qp.union(copy_links.css, merge_links.css),
+          js_files: qp.union(copy_links.js, merge_links.js),
+          page_content: fss.read(path.join(this.source_directory, this.page_dirname, page.source, page.source + '.html'))
+        }));
+
+        fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
+
+      }
+    },
+
+    build_vue_page: function(page) {
+      var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
       if (page_assets.asset_file.exists) {
 
         var view_assets = { files: { copy: [], merge: [] } };
@@ -80,7 +121,7 @@ define(module, function(exports, require) {
         );
 
         var merge_links = this.group_by_extension(
-          this.merge_files(this.order_by_location(qp.union(view_assets.files.merge, page_assets.files.merge)), path.join(page, 'index'))
+          this.merge_files(this.order_by_location(qp.union(view_assets.files.merge, page_assets.files.merge)), path.join(page.target, 'index'))
         );
 
         var page_state = {
@@ -91,21 +132,14 @@ define(module, function(exports, require) {
           app_display: page_assets.state.app_display
         };
 
-        var page_html = this.apply_template(page_assets.state.page_template, qp.assign(page_state, {
+        var page_html = this.apply_template(page.template, qp.assign(page_state, {
           appcache: '',
           css_files: qp.union(copy_links.css, this.site_links.css, merge_links.css),
           js_files: qp.union(copy_links.js, this.site_links.js, merge_links.js)
         }));
 
-        fss.write(path.join(this.target_directory, page_dir, 'index.html'), page_html);
-        fss.write(
-          path.join(this.target_directory, 'fav', 'browserconfig.xml'),
-          this.apply_template('browserconfig.xml', page_state)
-        );
-        fss.write(
-          path.join(this.target_directory, 'fav', 'manifest.json'),
-          this.apply_template('manifest.json', page_state)
-        );
+        fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
+
       }
     },
 
