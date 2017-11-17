@@ -1,14 +1,14 @@
 {
   "name": "qp-build",
   "version": "1.0.17",
-  "description": "",
+  "description": "Build qp software",
   "main": "index.js",
   "dependencies": {
     "dotenv": "^4.x",
     "glob": "^7.x",
     "mustache": "^2.x",
-    "qp-vue": "^1.0.1",
-    "uglify-es": "^3.1.7"
+    "qp-vue": "^1.0.10",
+    "uglify-es": "^3.1.9"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/cjr--/qp-build/issues"
   },
-  "homepage": "https://github.com/cjr--/qp-build#readme"
+  "homepage": "https://github.com/cjr--/qp-build#readme",
+  "devDependencies": {
+    "csso": "^3.4.0"
+  }
 }

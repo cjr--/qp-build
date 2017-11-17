@@ -13,12 +13,18 @@ define(module, function(exports, require) {
   var version = require('qp-library/version');
   var vue = require('qp-vue');
 
+  var min = {
+    js: require('uglify-es'),
+    css: require('csso')
+  };
+
   qp.make(exports, {
 
     ns: 'qp-build/build',
 
-    development: false,
     debug: false,
+    development: false,
+    production: false,
     bump: 'bump',
     version: '',
     state: {},
@@ -29,10 +35,12 @@ define(module, function(exports, require) {
     template_directory: '',
     source_directory: '',
     target_directory: '',
+    locations: null,
 
     site_links: {},
 
     build: function() {
+      this.production = !this.development;
       this.build_target_directory();
       this.build_site_assets();
       this.build_pages();
@@ -87,13 +95,7 @@ define(module, function(exports, require) {
           this.merge_files(this.order_by_location(page_assets.files.merge), path.join(page.target, 'index'))
         );
 
-        var page_state = {
-          page_title: page_assets.state.app_title,
-          brand_color: page_assets.state.brand_color,
-          app_display: page_assets.state.app_display
-        };
-
-        var page_html = this.apply_template(page.template, qp.assign(page_state, {
+        var page_html = this.apply_template(page.template, qp.assign(qp.clone(page_assets.state), {
           appcache: '',
           css_files: qp.union(copy_links.css, merge_links.css),
           js_files: qp.union(copy_links.js, merge_links.js),
@@ -124,15 +126,7 @@ define(module, function(exports, require) {
           this.merge_files(this.order_by_location(qp.union(view_assets.files.merge, page_assets.files.merge)), path.join(page.target, 'index'))
         );
 
-        var page_state = {
-          page_title: page_assets.state.app_title,
-          app_fullname: page_assets.state.app_fullname,
-          app_name: page_assets.state.app_name,
-          brand_color: page_assets.state.brand_color,
-          app_display: page_assets.state.app_display
-        };
-
-        var page_html = this.apply_template(page.template, qp.assign(page_state, {
+        var page_html = this.apply_template(page.template, qp.assign(qp.clone(page_assets.state), {
           appcache: '',
           css_files: qp.union(copy_links.css, this.site_links.css, merge_links.css),
           js_files: qp.union(copy_links.js, this.site_links.js, merge_links.js)
@@ -157,7 +151,21 @@ define(module, function(exports, require) {
         var merge_file = this.make_root_link(filename + '.' + ext);
         var merge_filename = path.join(this.target_directory, merge_file);
         fss.merge_files(files, { out_file: merge_filename });
-        merged_files.push(this.make_root_link(merge_file));
+        if (this.production) {
+          var merge_min_file = this.make_root_link(filename + '.min.' + ext);
+          var merge_min_filename = path.join(this.target_directory, merge_min_file);
+          if (ext === 'js') {
+            var result = min.js.minify(fss.read(merge_filename), { compress: { dead_code: false, unused: false } });
+            if (result.error) debug(result.error);
+            fss.write(merge_min_filename, result.error || result.code);
+          } else if (ext === 'css') {
+            var result = min.css.minify(fss.read(merge_filename), { });
+            fss.write(merge_min_filename, result.css);
+          }
+          merged_files.push(this.make_root_link(merge_min_file));
+        } else {
+          merged_files.push(this.make_root_link(merge_file));
+        }
       });
       return merged_files;
     },
@@ -181,25 +189,8 @@ define(module, function(exports, require) {
       return '/' + qp.ltrim(qp.ltrim(link, '/'), 'index/');
     },
 
-    get_locations: function() {
-      var src = this.source_directory;
-      var cwd = this.working_directory;
-      return [
-        { key: 'library', path: path.join(src, 'library', path.sep), files: [] },
-        { key: 'shared_modules', path: path.join(cwd, 'modules', path.sep), files: [] },
-        { key: 'site', path: path.join(src, 'site', path.sep), files: [] },
-        { key: 'local_modules', path: path.join(src, 'modules', path.sep), files: [] },
-        { key: 'mixin', path: path.join(src, 'mixin', path.sep), files: [] },
-        { key: 'api', path: path.join(src, 'api', path.sep), files: [] },
-        { key: 'store', path: path.join(src, 'store', path.sep), files: [] },
-        { key: 'directive', path: path.join(src, 'directive', path.sep), files: [] },
-        { key: 'component', path: path.join(src, 'component', path.sep), files: [] },
-        { key: 'page', path: path.join(src, 'page', path.sep), files: [] }
-      ];
-    },
-
     order_by_location: function(files) {
-      var locations = this.get_locations();
+      var locations = this.locations(this.source_directory, this.working_directory);
       qp.each(files, (file) => {
         qp.each(locations, (location) => {
           if (qp.starts(file, location.path)) {
