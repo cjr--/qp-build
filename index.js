@@ -107,6 +107,10 @@ define(module, function(exports, require) {
       }
     },
 
+    build_app_page: function(page) {
+      this.build_vue_page(page);
+    },
+
     build_vue_page: function(page) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
       if (page_assets.asset_file.exists) {
