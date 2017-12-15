@@ -59,7 +59,8 @@ define(module, function(exports, require) {
 
     build_site_assets: function() {
       var site_assets = this.build_assets(path.join(this.site_dirname, '.asset'));
-      if (this.development) site_assets.files.merge.unshift(path.join(this.source_directory, 'developer.js'));
+      if (this.debug) site_assets.files.merge.unshift(path.join(this.source_directory, 'debug.js'));
+      if (this.development) site_assets.files.merge.unshift(path.join(this.source_directory, 'development.js'));
       this.site_links = this.group_by_extension(
         qp.union(
           this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site/')),
