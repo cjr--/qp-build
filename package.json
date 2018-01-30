@@ -4,12 +4,12 @@
   "description": "Build qp software",
   "main": "index.js",
   "dependencies": {
-    "csso": "^3.4.0",
-    "dotenv": "^4.x",
-    "glob": "^7.x",
-    "mustache": "^2.x",
-    "qp-vue": "^1.0.11",
-    "uglify-es": "^3.1.9"
+    "csso": "^3.5.0",
+    "dotenv": "^5",
+    "glob": "^7",
+    "mustache": "^2",
+    "qp-vue": "^1.0.16",
+    "uglify-es": "^3.3.9"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
