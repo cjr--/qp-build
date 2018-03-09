@@ -75,14 +75,14 @@ define(module, function(exports, require) {
         this['build_' + page.type + '_page'](page);
       });
 
-      fss.write(
-        path.join(this.target_directory, 'fav', 'browserconfig.xml'),
-        this.apply_template('browserconfig.xml', this.state)
-      );
-      fss.write(
-        path.join(this.target_directory, 'fav', 'manifest.json'),
-        this.apply_template('manifest.json', this.state)
-      );
+      // fss.write(
+      //   path.join(this.target_directory, 'fav', 'browserconfig.xml'),
+      //   this.apply_template('browserconfig.xml', this.state)
+      // );
+      // fss.write(
+      //   path.join(this.target_directory, 'fav', 'manifest.json'),
+      //   this.apply_template('manifest.json', this.state)
+      // );
     },
 
     build_html_page: function(page) {
