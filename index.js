@@ -71,8 +71,12 @@ define(module, function(exports, require) {
 
     build_pages: function() {
       qp.each(this.pages, (page) => {
-        page.template = page.template || page.type + '.template.html';
-        this['build_' + page.type + '_page'](page);
+        if (!this.development && page.source === 'development') {
+          //
+        } else {
+          page.template = page.template || page.type + '.template.html';
+          this['build_' + page.type + '_page'](page);
+        }
       });
 
       // fss.write(
