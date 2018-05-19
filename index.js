@@ -71,12 +71,8 @@ define(module, function(exports, require) {
 
     build_pages: function() {
       qp.each(this.pages, (page) => {
-        if (!this.development && page.source === 'development') {
-          //
-        } else {
-          page.template = page.template || page.type + '.template.html';
-          this['build_' + page.type + '_page'](page);
-        }
+        page.template = page.template || page.type + '.template.html';
+        this['build_' + page.type + '_page'](page);
       });
 
       // fss.write(
@@ -93,6 +89,8 @@ define(module, function(exports, require) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
       if (page_assets.asset_file.exists) {
 
+        // debug(page_assets.files.copy)
+
         var copy_links = this.group_by_extension(
           this.copy_files(this.order_by_location(page_assets.files.copy))
         );
@@ -103,8 +101,8 @@ define(module, function(exports, require) {
 
         var page_html = this.apply_template(page.template, qp.assign(qp.clone(page_assets.state), {
           appcache: '',
-          css_files: qp.union(page_assets.links.css, copy_links.css, merge_links.css),
-          js_files: qp.union(page_assets.links.js, copy_links.js, merge_links.js),
+          css_files: qp.union(page_assets.links.css, copy_links.css, this.site_links.css, merge_links.css),
+          js_files: qp.union(page_assets.links.js, copy_links.js, this.site_links.js, merge_links.js),
           page_content: fss.read(path.join(this.source_directory, this.page_dirname, page.source, page.source + '.html'))
         }));
 
