@@ -4,11 +4,11 @@
   "description": "Build qp software",
   "main": "index.js",
   "dependencies": {
-    "csso": "^3.5.0",
-    "dotenv": "^5",
-    "glob": "^7",
-    "mustache": "^2",
-    "qp-vue": "^1.0.16",
+    "csso": "^3.5.1",
+    "dotenv": "^6.0.0",
+    "glob": "^7.1.3",
+    "mustache": "^3.0.0",
+    "qp-vue": "^1.0.21",
     "uglify-es": "^3.3.9"
   },
   "scripts": {
