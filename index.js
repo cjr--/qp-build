@@ -63,9 +63,13 @@ define(module, function(exports, require) {
       if (this.development) site_assets.files.merge.unshift(path.join(this.source_directory, 'development.js'));
       this.site_links = this.group_by_extension(
         qp.union(
-          this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site/')),
+          this.copy_files(site_assets.files.copy, file => qp.ltrim(file, '/site')),
           this.merge_files(site_assets.files.merge, 'site')
         )
+      );
+      this.copy_files(
+        qp.select(site_assets.assets, (asset) => { if (asset.move) return asset.target; }),
+        file => qp.ltrim(file, '/site')
       );
     },
 
@@ -88,8 +92,6 @@ define(module, function(exports, require) {
     build_html_page: function(page) {
       var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
       if (page_assets.asset_file.exists) {
-
-        // debug(page_assets.files.copy)
 
         var copy_links = this.group_by_extension(
           this.copy_files(this.order_by_location(page_assets.files.copy))
