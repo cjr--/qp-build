@@ -70,6 +70,7 @@ define(module, function(exports, require) {
       qp.each(site_assets.files.copy_to, file => {
         this.copy_file(file.source, path.join(this.target_directory, file.target));
       });
+      this.copy_files(site_assets.files.move, file => qp.ltrim(file, '/site'));
     },
 
     build_pages: function() {
