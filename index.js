@@ -67,10 +67,9 @@ define(module, function(exports, require) {
           this.merge_files(site_assets.files.merge, 'site')
         )
       );
-      this.copy_files(
-        qp.select(site_assets.assets, (asset) => { if (asset.move) return asset.target; }),
-        file => qp.ltrim(file, '/site')
-      );
+      qp.each(site_assets.files.copy_to, file => {
+        this.copy_file(file.source, path.join(this.target_directory, file.target));
+      });
     },
 
     build_pages: function() {
