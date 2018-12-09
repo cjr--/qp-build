@@ -45,12 +45,6 @@ define(module, function(exports, require) {
       this.build_site_assets();
       this.build_pages();
       this.version = version(this.bump);
-
-      fss.write_json(this.target_directory, 'info.json', {
-        mode: this.development ? 'DEVELOPMENT' : 'PRODUCTION',
-        debug: this.debug,
-        version: this.version.to
-      });
     },
 
     build_target_directory: function() {
