@@ -1,5 +1,3 @@
-require('./boot');
-
 define(module, function(exports, require) {
 
   var path = require('path');
