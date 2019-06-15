@@ -102,6 +102,10 @@ define(module, function(exports, require) {
 
         fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
 
+        qp.each(page_assets.files.copy_to, file => {
+          this.copy_file(file.source, path.join(this.target_directory, file.target));
+        });
+
       }
     },
 
