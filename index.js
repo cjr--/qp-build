@@ -89,22 +89,25 @@ define(module, function(exports, require) {
           this.copy_files(this.order_by_location(page_assets.files.copy))
         );
 
+        var copy_to_links = this.group_by_extension(
+          qp.map(page_assets.files.copy_to, file => {
+            this.copy_file(file.source, path.join(this.target_directory, file.target));
+            return file.target;
+          })
+        );
+
         var merge_links = this.group_by_extension(
           this.merge_files(this.order_by_location(page_assets.files.merge), path.join(page.target, 'index'))
         );
 
         var page_html = this.apply_template(page.template, qp.assign(qp.clone(page_assets.state), {
           appcache: '',
-          css_files: qp.union(page_assets.links.css, copy_links.css, this.site_links.css, merge_links.css),
-          js_files: qp.union(page_assets.links.js, copy_links.js, this.site_links.js, merge_links.js),
+          css_files: qp.union(page_assets.links.css, copy_links.css, copy_to_links.css, this.site_links.css, merge_links.css),
+          js_files: qp.union(page_assets.links.js, copy_links.js, copy_to_links.js, this.site_links.js, merge_links.js),
           page_content: fss.read(path.join(this.source_directory, this.page_dirname, page.source, page.source + '.html'))
         }));
 
         fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
-
-        qp.each(page_assets.files.copy_to, file => {
-          this.copy_file(file.source, path.join(this.target_directory, file.target));
-        });
 
       }
     },
@@ -128,14 +131,21 @@ define(module, function(exports, require) {
           this.copy_files(this.order_by_location(qp.union(view_assets.files.copy, page_assets.files.copy)))
         );
 
+        var copy_to_links = this.group_by_extension(
+          qp.map(page_assets.files.copy_to, file => {
+            this.copy_file(file.source, path.join(this.target_directory, file.target));
+            return file.target;
+          })
+        );
+
         var merge_links = this.group_by_extension(
           this.merge_files(this.order_by_location(qp.union(view_assets.files.merge, page_assets.files.merge)), path.join(page.target, 'index'))
         );
 
         var page_html = this.apply_template(page.template, qp.assign(qp.clone(page_assets.state), {
           appcache: '',
-          css_files: qp.union(page_assets.links.css, copy_links.css, this.site_links.css, merge_links.css),
-          js_files: qp.union(page_assets.links.js, copy_links.js, this.site_links.js, merge_links.js)
+          css_files: qp.union(page_assets.links.css, copy_links.css, copy_to_links.css, this.site_links.css, merge_links.css),
+          js_files: qp.union(page_assets.links.js, copy_links.js, copy_to_links.js, this.site_links.js, merge_links.js)
         }));
 
         fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
