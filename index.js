@@ -27,22 +27,38 @@ define(module, function(exports, require) {
     version: '',
     state: {},
     pages: [],
+    shared_pages: [],
     working_directory: '',
     site_dirname: 'site',
     page_dirname: 'page',
     template_directory: '',
     source_directory: '',
+    shared_directory: '',
     target_directory: '',
-    locations: null,
-
+    locations: [],
+    site_file: false,
+    site_info: {},
     site_links: {},
 
     build: function() {
       this.production = !this.development;
+      this.version = version(this.bump);
+      this.locations = qp.map(this.locations, path => ({ path: path, files: [] }));
+      this.build_site_info();
       this.build_target_directory();
       this.build_site_assets();
       this.build_pages();
-      this.version = version(this.bump);
+      this.build_shared_pages();
+      if (this.site_file) {
+        fss.write_json(this.target_directory, this.site_file, this.site_info);
+      }
+    },
+
+    build_site_info: function() {
+      this.site_info.mode      = this.development ? 'DEVELOPMENT' : 'PRODUCTION';
+      this.site_info.debug     = this.debug;
+      this.site_info.version   = this.version.to;
+      this.site_info.timestamp = qp.now('iso');
     },
 
     build_target_directory: function() {
@@ -50,7 +66,7 @@ define(module, function(exports, require) {
     },
 
     build_site_assets: function() {
-      var site_assets = this.build_assets(path.join(this.site_dirname, '.asset'));
+      var site_assets = this.build_assets(path.join(this.source_directory, this.site_dirname, '.asset'));
       if (this.debug) site_assets.files.merge.unshift(path.join(this.source_directory, 'debug.js'));
       if (this.development) site_assets.files.merge.unshift(path.join(this.source_directory, 'development.js'));
       this.site_links = this.group_by_extension(
@@ -68,7 +84,8 @@ define(module, function(exports, require) {
     build_pages: function() {
       qp.each(this.pages, (page) => {
         page.template = page.template || page.type + '.template.html';
-        this['build_' + page.type + '_page'](page);
+        var page_assets = this.build_assets(path.join(this.source_directory, this.page_dirname, page.source, '.asset'));
+        this['build_' + page.type + '_page'](this.source_directory, page, page_assets);
       });
 
       // fss.write(
@@ -81,8 +98,15 @@ define(module, function(exports, require) {
       // );
     },
 
-    build_html_page: function(page) {
-      var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
+    build_shared_pages: function() {
+      qp.each(this.shared_pages, (page) => {
+        page.template = page.template || page.type + '.template.html';
+        var page_assets = this.build_assets(path.join(this.shared_directory, this.page_dirname, page.source, '.asset'));
+        this['build_' + page.type + '_page'](this.shared_directory, page, page_assets);
+      });      
+    },
+
+    build_html_page: function(source_directory, page, page_assets) {
       if (page_assets.asset_file.exists) {
 
         var copy_links = this.group_by_extension(
@@ -104,7 +128,7 @@ define(module, function(exports, require) {
           appcache: '',
           css_files: qp.union(page_assets.links.css, copy_links.css, copy_to_links.css, this.site_links.css, merge_links.css),
           js_files: qp.union(page_assets.links.js, copy_links.js, copy_to_links.js, this.site_links.js, merge_links.js),
-          page_content: fss.read(path.join(this.source_directory, this.page_dirname, page.source, page.source + '.html'))
+          page_content: fss.read(path.join(source_directory, this.page_dirname, page.source, page.source + '.html'))
         }));
 
         fss.write(path.join(this.target_directory, page.target, 'index.html'), page_html);
@@ -112,12 +136,11 @@ define(module, function(exports, require) {
       }
     },
 
-    build_app_page: function(page) {
-      this.build_vue_page(page);
+    build_app_page: function(source_directory, page, page_assets) {
+      this.build_vue_page(source_directory, page, page_assets);
     },
 
-    build_vue_page: function(page) {
-      var page_assets = this.build_assets(path.join(this.page_dirname, page.source, '.asset'));
+    build_vue_page: function(source_directory, page, page_assets) {
       if (page_assets.asset_file.exists) {
 
         var view_assets = { files: { copy: [], merge: [] } };
@@ -157,7 +180,7 @@ define(module, function(exports, require) {
       return asset.create({
         state: qp.clone(this.state),
         root: this.working_directory,
-        file: path.join(this.source_directory, file)
+        file: file
       });
     },
 
@@ -206,7 +229,7 @@ define(module, function(exports, require) {
     },
 
     order_by_location: function(files) {
-      var locations = this.locations(this.source_directory, this.working_directory);
+      var locations = qp.clone(this.locations);
       qp.each(files, (file) => {
         qp.each(locations, (location) => {
           if (qp.starts(file, location.path)) {
