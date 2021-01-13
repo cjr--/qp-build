@@ -103,11 +103,17 @@ define(module, function(exports, require) {
         page.template = page.template || page.type + '.template.html';
         var page_assets = this.build_assets(path.join(this.shared_directory, this.page_dirname, page.source, '.asset'));
         this['build_' + page.type + '_page'](this.shared_directory, page, page_assets);
-      });      
+      });
     },
 
     build_html_page: function(source_directory, page, page_assets) {
       if (page_assets.asset_file.exists) {
+
+        this.copy_files(page_assets.files.move);
+
+        qp.each(page_assets.files.move_to, file => {
+          this.copy_file(file.source, path.join(this.target_directory, file.target));
+        });
 
         var copy_links = this.group_by_extension(
           this.copy_files(this.order_by_location(page_assets.files.copy))
@@ -148,6 +154,12 @@ define(module, function(exports, require) {
           var vue_assets = vue.component(view.target, view.target === page_assets.asset_dir);
           qp.push(view_assets.files.copy, vue_assets.files.copy);
           qp.push(view_assets.files.merge, vue_assets.files.merge);
+        });
+
+        this.copy_files(page_assets.files.move);
+
+        qp.each(page_assets.files.move_to, file => {
+          this.copy_file(file.source, path.join(this.target_directory, file.target));
         });
 
         var copy_links = this.group_by_extension(
