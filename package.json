@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "csso": "^4.2.0",
-    "dotenv": "^8.2.0",
+    "dotenv": "^10.0.0",
     "glob": "^7.1.6",
     "mustache": "^4.1.0",
     "qp-vue": "^1.0.26",
@@ -23,6 +23,5 @@
   "bugs": {
     "url": "https://github.com/cjr--/qp-build/issues"
   },
-  "homepage": "https://github.com/cjr--/qp-build#readme",
-  "devDependencies": {}
+  "homepage": "https://github.com/cjr--/qp-build#readme"
 }
